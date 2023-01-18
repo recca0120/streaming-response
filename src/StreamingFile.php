@@ -21,17 +21,11 @@ class StreamingFile
 
     public function stream()
     {
-        if (! $this->adapter instanceof AwsS3V3Adapter) {
-            return $this->adapter->readStream($this->path);
+        if ($this->adapter instanceof AwsS3V3Adapter) {
+            return $this->getS3ReadStream();
         }
+        return $this->adapter->readStream($this->path);
 
-        $bucket = Arr::get($this->adapter->getConfig(), 'bucket');
-        /** @var S3Client $client */
-        $client = $this->adapter->getClient();
-        $client->registerStreamWrapper();
-        $context = stream_context_create(['s3' => ['seekable' => true]]);
-
-        return fopen("s3://{$bucket}/{$this->path}", 'rb', false, $context);
     }
 
     public function mimeType(): ?string
@@ -47,5 +41,16 @@ class StreamingFile
     public function checksum(): bool|string
     {
         return $this->adapter->checksum($this->path);
+    }
+
+     protected function getS3ReadStream()
+    {
+        $bucket = Arr::get($this->adapter->getConfig(), 'bucket');
+        /** @var S3Client $client */
+        $client = $this->adapter->getClient();
+        $client->registerStreamWrapper();
+        $context = stream_context_create(['s3' => ['seekable' => true]]);
+
+        return fopen("s3://{$bucket}/{$this->path}", 'rb', false, $context);
     }
 }
