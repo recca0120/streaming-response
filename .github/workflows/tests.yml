@@ -9,30 +9,56 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [ '8.0', '8.1' ]
-        stability: [ prefer-stable ]
+        php: [ '8.0', '8.1', '8.2' ]
 
-    name: PHP ${{ matrix.php }} - ${{ matrix.stability }}
+    name: PHP ${{ matrix.php }}
+
+    env:
+      extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, fileinfo
+      key: cache-v1 # can be any string, change to clear the extension cache.
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: Setup cache environment
+        id: extcache
+        uses: shivammathur/cache-extensions@v1
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: ${{ env.extensions }}
+          key: ${{ env.key }}
+
+      - name: Cache extensions
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.extcache.outputs.dir }}
+          key: ${{ steps.extcache.outputs.key }}
+          restore-keys: ${{ steps.extcache.outputs.key }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, fileinfo
+          extensions: ${{ env.extensions }}
           tools: composer:v2
           coverage: none
 
-      - name: Install dependencies
-        uses: nick-invision/retry@v1
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
         with:
-          timeout_minutes: 5
-          max_attempts: 5
-          command: composer update --${{ matrix.stability }} --prefer-dist --no-interaction --no-progress ${{ matrix.flags }}
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        run: |
+          if [[ "${{ matrix.php }}" = "8.0" ]]; then sed -i -e 's/\("illuminate\/filesystem":[[:space:]]\).*/\1"^8.83",/' composer.json ; fi
+          composer install --prefer-dist --no-interaction --no-progress
 
       - name: Execute tests
-        continue-on-error: ${{ matrix.php > 8 }}
-        run: vendor/bin/phpunit --verbose
+        run: vendor/bin/phpunit --testdox --verbose
