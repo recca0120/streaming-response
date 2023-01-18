@@ -5,7 +5,6 @@ namespace Recca0120\StreamingResponse;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\ServiceProvider;
 
-
 class StreamingResponseServiceProvider extends ServiceProvider
 {
     public function boot()

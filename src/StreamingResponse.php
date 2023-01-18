@@ -3,7 +3,6 @@
 namespace Recca0120\StreamingResponse;
 
 use DateTime;
-use League\Flysystem\FileNotFoundException;
 use LogicException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,14 +10,15 @@ use Symfony\Component\HttpFoundation\Response;
 class StreamingResponse extends Response
 {
     private int $offset = 0;
+
     private int $maxLength = -1;
+
     private int $chunkSize = 1024 * 8;
+
     private bool $streamed = false;
+
     private bool $headersSent = false;
 
-    /**
-     * @throws FileNotFoundException
-     */
     public function __construct(private StreamingFile $file, int $status = 200, array $headers = [])
     {
         parent::__construct(null, $status, $headers);
@@ -80,7 +80,7 @@ class StreamingResponse extends Response
         if ($start < 0 || $start > $end) {
             $this->setStatusCode(416);
             $this->headers->set('Content-Range', sprintf('bytes */%s', $fileSize));
-        } else if ($end - $start < $fileSize - 1) {
+        } elseif ($end - $start < $fileSize - 1) {
             $this->setStatusCode(206);
             $this->headers->set('Content-Range', sprintf('bytes %s-%s/%s', $start, $end, $fileSize));
             $this->headers->set('Content-Length', $end - $start + 1);
@@ -145,7 +145,6 @@ class StreamingResponse extends Response
 
         return $this;
     }
-
 
     public function setContent(?string $content): static
     {

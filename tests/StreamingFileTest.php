@@ -2,7 +2,6 @@
 
 namespace Recca0120\StreamingResponse\Tests;
 
-
 use Illuminate\Support\Facades\Storage;
 use Recca0120\StreamingResponse\StreamingFile;
 

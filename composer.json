@@ -12,10 +12,10 @@
   "require": {
     "php": "^8.0",
     "illuminate/filesystem": "^8.0|^9.0",
-    "symfony/http-foundation": "^5.4|^6.2"
+    "symfony/http-foundation": "^5.4|^6.0"
   },
   "require-dev": {
-    "league/flysystem-aws-s3-v3": "^1.0|^3.0",
+    "league/flysystem-aws-s3-v3": "^1.1|^3.0",
     "mockery/mockery": "^1.5",
     "orchestra/testbench": "^6.25|^7.19",
     "phpoption/phpoption": "^1.9",

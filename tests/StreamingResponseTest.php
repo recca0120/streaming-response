@@ -68,7 +68,6 @@ class StreamingResponseTest extends TestCase
 
     public function test_request_has_range_without_offset_and_end(): void
     {
-
         $this->expectOutputString('ello world');
 
         $file = $this->givenFile();
@@ -88,7 +87,6 @@ class StreamingResponseTest extends TestCase
 
     public function test_request_has_range_offset_is_zero(): void
     {
-
         $this->expectOutputString('hello world');
 
         $file = $this->givenFile();
@@ -124,10 +122,10 @@ class StreamingResponseTest extends TestCase
         $adapter->allows('lastModified')->andReturn(filemtime($path));
         $adapter->allows('checksum')->andReturn(md5($path));
         $adapter->allows('getMetadata')->andReturn([
-            "type" => "file",
-            "path" => "test.txt",
-            "timestamp" => 1674021816,
-            "size" => 11,
+            'type' => 'file',
+            'path' => 'test.txt',
+            'timestamp' => 1674021816,
+            'size' => 11,
         ]);
         $adapter->allows('getDriver')->andReturn($driver);
 

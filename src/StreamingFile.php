@@ -7,48 +7,45 @@ use Illuminate\Filesystem\AwsS3V3Adapter;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Arr;
 use League\Flysystem\AwsS3v3\AwsS3Adapter;
-use League\Flysystem\FileNotFoundException;
 
 class StreamingFile
 {
-    public function __construct(private FilesystemAdapter $adapter, private string $path)
+    public function __construct(private FilesystemAdapter $disk, private string $path)
     {
     }
 
     public function size(): int
     {
-        return $this->adapter->size($this->path);
+        return $this->disk->size($this->path);
     }
 
     public function stream()
     {
-        return $this->isS3() ? $this->getS3ReadStream() : $this->adapter->readStream($this->path);
+        return $this->isS3() ? $this->getS3ReadStream() : $this->disk->readStream($this->path);
     }
 
     public function mimeType(): ?string
     {
-        return $this->adapter->mimeType($this->path);
+        return $this->disk->mimeType($this->path);
     }
 
     public function lastModified(): int
     {
-        return $this->adapter->lastModified($this->path);
+        return $this->disk->lastModified($this->path);
     }
 
-    /**
-     * @throws FileNotFoundException
-     */
     public function checksum(): string
     {
-        return md5(serialize($this->adapter->getMetadata($this->path)));
+        return method_exists($this->disk, 'checksum')
+            ? $this->disk->checksum($this->path)
+            : md5(serialize($this->disk->getMetadata($this->path)));
     }
 
     protected function getS3ReadStream()
     {
-        $bucket = Arr::get($this->adapter->getConfig(), 'bucket');
-        /** @var S3Client $client */
-        $client = $this->adapter->getClient();
+        $client = $this->getS3Client();
         $client->registerStreamWrapper();
+        $bucket = $this->getBucket();
         $context = stream_context_create(['s3' => ['seekable' => true]]);
 
         return fopen("s3://{$bucket}/{$this->path}", 'rb', false, $context);
@@ -59,12 +56,33 @@ class StreamingFile
      */
     private function isS3(): bool
     {
-        if ($this->adapter instanceof AwsS3V3Adapter) {
+        if ($this->disk instanceof AwsS3V3Adapter) {
             return true;
         }
 
-        $driver = $this->adapter->getDriver();
+        $driver = $this->disk->getDriver();
 
         return method_exists($driver, 'getAdapter') && $driver->getAdapter() instanceof AwsS3Adapter;
+    }
+
+    /**
+     * @return S3Client
+     */
+    private function getS3Client(): S3Client
+    {
+        if ($this->disk instanceof AwsS3V3Adapter) {
+            return $this->disk->getClient();
+        }
+
+        return $this->disk->getAdapter()->getClient();
+    }
+
+    private function getBucket(): string
+    {
+        if ($this->disk instanceof AwsS3V3Adapter) {
+            return Arr::get($this->disk->getConfig(), 'bucket');
+        }
+
+        return $this->disk->getAdapter()->getBucket();
     }
 }

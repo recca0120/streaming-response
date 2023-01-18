@@ -24,4 +24,11 @@
             <directory suffix=".php">src</directory>
         </include>
     </coverage>
+
+    <php>
+        <env name="AWS_ACCESS_KEY_ID" value=""/>
+        <env name="AWS_SECRET_ACCESS_KEY" value=""/>
+        <env name="AWS_DEFAULT_REGION" value=""/>
+        <env name="AWS_BUCKET" value=""/>
+    </php>
 </phpunit>
