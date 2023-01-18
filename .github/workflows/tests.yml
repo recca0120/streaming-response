@@ -42,7 +42,7 @@ jobs:
           php-version: ${{ matrix.php }}
           extensions: ${{ env.extensions }}
           tools: composer:v2
-          coverage: none
+          coverage: xdebug
 
       - name: Get Composer Cache Directory
         id: composer-cache
