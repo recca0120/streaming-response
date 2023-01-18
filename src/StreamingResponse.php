@@ -3,6 +3,7 @@
 namespace Recca0120\StreamingResponse;
 
 use DateTime;
+use League\Flysystem\FileNotFoundException;
 use LogicException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,6 +16,9 @@ class StreamingResponse extends Response
     private bool $streamed = false;
     private bool $headersSent = false;
 
+    /**
+     * @throws FileNotFoundException
+     */
     public function __construct(private StreamingFile $file, int $status = 200, array $headers = [])
     {
         parent::__construct(null, $status, $headers);

@@ -123,6 +123,12 @@ class StreamingResponseTest extends TestCase
         $adapter->allows('mimeType')->andReturn('text/plain');
         $adapter->allows('lastModified')->andReturn(filemtime($path));
         $adapter->allows('checksum')->andReturn(md5($path));
+        $adapter->allows('getMetadata')->andReturn([
+            "type" => "file",
+            "path" => "test.txt",
+            "timestamp" => 1674021816,
+            "size" => 11,
+        ]);
         $adapter->allows('getDriver')->andReturn($driver);
 
         return new StreamingFile($adapter, $path);

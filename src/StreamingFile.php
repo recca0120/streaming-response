@@ -7,12 +7,12 @@ use Illuminate\Filesystem\AwsS3V3Adapter;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Arr;
 use League\Flysystem\AwsS3v3\AwsS3Adapter;
+use League\Flysystem\FileNotFoundException;
 
 class StreamingFile
 {
     public function __construct(private FilesystemAdapter $adapter, private string $path)
     {
-
     }
 
     public function size(): int
@@ -35,9 +35,12 @@ class StreamingFile
         return $this->adapter->lastModified($this->path);
     }
 
-    public function checksum(): bool|string
+    /**
+     * @throws FileNotFoundException
+     */
+    public function checksum(): string
     {
-        return $this->adapter->checksum($this->path);
+        return md5(serialize($this->adapter->getMetadata($this->path)));
     }
 
     protected function getS3ReadStream()
