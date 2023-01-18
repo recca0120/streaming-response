@@ -2,10 +2,11 @@
 
 namespace Recca0120\StreamingResponse\Tests;
 
+use Illuminate\Filesystem\FilesystemAdapter;
+use League\Flysystem\FilesystemInterface;
+use Mockery as m;
 use Recca0120\StreamingResponse\StreamingFile;
 use Recca0120\StreamingResponse\StreamingResponse;
-use Illuminate\Filesystem\FilesystemAdapter;
-use Mockery as m;
 use Symfony\Component\HttpFoundation\Request;
 
 class StreamingResponseTest extends TestCase
@@ -114,12 +115,15 @@ class StreamingResponseTest extends TestCase
         $meta = stream_get_meta_data($stream);
         $path = $meta['uri'];
 
+        $driver = m::mock(FilesystemInterface::class);
+
         $adapter = m::mock(FilesystemAdapter::class);
         $adapter->allows('size')->andReturn(filesize($path));
         $adapter->allows('readStream')->andReturn($stream);
         $adapter->allows('mimeType')->andReturn('text/plain');
         $adapter->allows('lastModified')->andReturn(filemtime($path));
         $adapter->allows('checksum')->andReturn(md5($path));
+        $adapter->allows('getDriver')->andReturn($driver);
 
         return new StreamingFile($adapter, $path);
     }
